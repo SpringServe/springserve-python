@@ -570,8 +570,8 @@ from ._object_change_messages import _ObjectChangeMessagesAPI
 accounts = _AccountAPI()
 app_bundles = _AppBundleListAPI()
 app_names = _AppNameListAPI()
-device_ids = _DeviceIdListAPI()
-ips = _IpListAPI()
+device_id_lists = _DeviceIdListAPI()
+ip_lists = _IpListAPI()
 
 bills = _BillAPI()
 
