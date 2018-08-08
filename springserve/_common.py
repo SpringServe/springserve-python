@@ -192,6 +192,135 @@ class _AppNameListAPI(_VDAPIService):
     __RESPONSE_OBJECT__ = _AppNameListResponse
 
 
+class _DeviceIdListResponse(_VDAPISingleResponse):
+    """
+    Override to give you access to the actual device ids
+    """
+
+    def get_device_ids(self, **kwargs):
+        """
+        Get the list of device ids that are in this device id list
+
+            d = springserve.device_id_list.get(id)
+            device_ids = d.get_device_ids()
+
+            for device_id in device_ids:
+                print device_id.name
+
+        """
+        return self._service.get("{}/device_ids".format(self.id), **kwargs)
+
+    def _to_list(self, input_list):
+        """
+        The api needs a list, and you can't serialize sets, or Series
+        """
+        if isinstance(input_list, list):
+            return input_list
+
+        return [x for x in input_list]
+
+    def add_device_ids(self, device_ids):
+        """
+        Add a list of device ids to this device id list
+
+            d = springserve.device_id_lists.get(id)
+            d.add_device_ids(['123', '124'])
+
+        device_ids: List of device ids you would like to add
+        """
+        payload = {'device_ids':self._to_list(device_ids)}
+        resp = self._service.post(payload,
+                                  path_param='{}/device_ids/bulk_create'.format(self.id)
+                                 )
+        return resp
+
+    def remove_device_ids(self, device_ids):
+        """
+        Remove a list of device ids from this device id list
+
+            d = springserve.device_id_lists.get(id)
+            d.remove_device_ids(['123', '124'])
+
+        device_ids: List of device ids you would like to remove
+        """
+        payload = {'device_ids':self._to_list(device_ids)}
+        resp = self._service.bulk_delete(payload,
+                                  path_param='{}/device_ids/bulk_delete'.format(self.id)
+                                 )
+        return resp
+
+
+class _DeviceIdListAPI(_VDAPIService):
+
+    __API__ = "device_id_lists"
+    __RESPONSE_OBJECT__ = _DeviceIdListResponse
+
+
+class _IpListResponse(_VDAPISingleResponse):
+    """
+    Override to give you access to the actual ips
+    """
+
+    def get_ips(self, **kwargs):
+        """
+        Get the list of ips that are in this ip list
+
+            d = springserve.ip_lists.get(id)
+            ips = d.get_ips()
+
+            for ip in ips:
+                print ips.name
+
+        """
+        import pdb; pdb.trace()
+        return self._service.get("{}/ips".format(self.id), **kwargs)
+
+    def _to_list(self, input_list):
+        """
+        The api needs a list, and you can't serialize sets, or Series
+        """
+        if isinstance(input_list, list):
+            return input_list
+
+        return [x for x in input_list]
+
+    def add_ips(self, ips):
+        """
+        Add a list of ips to this ip list
+
+            d = springserve.ip_lists.get(id)
+            d.add_ips(['123', '124'])
+
+        ips: List of ips you would like to add
+        """
+        payload = {'ips':self._to_list(ips)}
+        resp = self._service.post(payload,
+                                  path_param='{}/ips/bulk_create'.format(self.id)
+                                 )
+        return resp
+
+    def remove_ips(self, ips):
+        """
+        Remove a list of ips from this ip list
+
+            d = springserve.ip_lists.get(id)
+            d.remove_ips(['123', '124'])
+
+        ips: List of ips you would like to remove
+        """
+        payload = {'ips':self._to_list(ips)}
+        resp = self._service.bulk_delete(payload,
+                                  path_param='{}/ips/bulk_delete'.format(self.id)
+                                 )
+        return resp
+
+
+class _IpListAPI(_VDAPIService):
+
+    __API__ = "ip_lists"
+    __RESPONSE_OBJECT__ = _IpListResponse
+
+
 class _BillItemAPI(_VDAPIService):
 
     __API__ = "bill_items"
