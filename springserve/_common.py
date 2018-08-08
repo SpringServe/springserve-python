@@ -204,8 +204,8 @@ class _DeviceIdListResponse(_VDAPISingleResponse):
             d = springserve.device_id_list.get(id)
             device_ids = d.get_device_ids()
 
-            for device_id in device_ids:
-                print device_id.name
+            for id in device_ids:
+                print id.device_id
 
         """
         return self._service.get("{}/device_ids".format(self.id), **kwargs)
@@ -268,11 +268,10 @@ class _IpListResponse(_VDAPISingleResponse):
             d = springserve.ip_lists.get(id)
             ips = d.get_ips()
 
-            for ip in ips:
-                print ips.name
+            for i in ips:
+                print i.ip
 
         """
-        import pdb; pdb.trace()
         return self._service.get("{}/ips".format(self.id), **kwargs)
 
     def _to_list(self, input_list):
