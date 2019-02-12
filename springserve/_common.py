@@ -357,6 +357,11 @@ class _BillAPI(_VDAPIService):
     __API__ = "bills"
     __RESPONSE_OBJECT__ = _BillResponse
 
+    def bulk_sync(self, ids, reauth=False, **query_params):
+        query_params['ids'] = ','.join(str(x) for x in ids)
+
+        return self.get('bulk_sync', reauth, **query_params)
+
 class _ValueAPI(_VDAPIService):
 
     __API__ = "values"

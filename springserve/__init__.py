@@ -414,13 +414,6 @@ class _VDAPIService(object):
         return API(reauth=reauth).get(_format_url(self.endpoint, path_param),
                                       params=params)
 
-    def bulk_sync(self, ids, reauth=False, **query_params):
-        query_params['ids'] = ','.join(str(x) for x in ids)
-
-        if self.endpoint == 'bills/':
-            return API(reauth=reauth).get(_format_url(self.endpoint, 'bulk_sync'),
-                                          params=query_params)
-
     def get(self, path_param=None, reauth=False, **query_params):
         """
         Make a get request to this api service.  Allows you to pass in arbitrary
