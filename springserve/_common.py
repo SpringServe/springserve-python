@@ -6,6 +6,8 @@ class _DomainListResponse(_VDAPISingleResponse):
     Override to give you access to the actual domains
     """
 
+    __SUB_API__ = "domains"
+
     def get_domains(self, **kwargs):
         """
         Get the list of domains that are in this domain list
@@ -17,7 +19,7 @@ class _DomainListResponse(_VDAPISingleResponse):
                 print domain.name
 
         """
-        return self._service.get("{}/domains".format(self.id), **kwargs)
+        return self._service.get("{}/{}".format(self.id, self.__SUB_API__), **kwargs)
     
     def _to_list(self, input_list):
         """
@@ -39,7 +41,7 @@ class _DomainListResponse(_VDAPISingleResponse):
         """
         payload = {'names':self._to_list(domains)}
         resp = self._service.post(payload,
-                                  path_param='{}/domains/bulk_create'.format(self.id)
+                                  path_param='{}/{}/bulk_create'.format(self.id, self.__SUB_API__)
                                  )
         return resp
 
@@ -54,7 +56,7 @@ class _DomainListResponse(_VDAPISingleResponse):
         """
         payload = {'names':self._to_list(domains)}
         resp = self._service.bulk_delete(payload,
-                                  path_param='{}/domains/bulk_delete'.format(self.id)
+                                  path_param='{}/{}/bulk_delete'.format( self.id, self.__SUB_API__)
                                  )
         return resp
 
@@ -63,6 +65,14 @@ class _DomainListAPI(_VDAPIService):
 
     __API__ = "domain_lists"
     __RESPONSE_OBJECT__ = _DomainListResponse
+
+class _AdvertiserDomainListResponse(_DomainListResponse):
+    __SUB_API__ = "advertiser_domains"
+
+class _AdvertiserDomainListAPI(_VDAPIService):
+
+    __API__ = "advertiser_domain_lists"
+    __RESPONSE_OBJECT__ = _AdvertiserDomainListResponse
 
 
 class _AppBundleListResponse(_VDAPISingleResponse):
