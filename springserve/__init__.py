@@ -138,8 +138,6 @@ def V1API(reauth=False):
     """
     global _V1_API, _ACCOUNT, _CONFIG_OVERRIDE, _TOKEN_OVERRIDE
 
-    # FIXME: base_url needs to be overridden for V1 API
-
     if _V1_API is None or reauth:
         _msg.debug("authenticating to springserve")
         try:
