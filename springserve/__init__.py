@@ -8,7 +8,7 @@ if six.PY3:
     from builtins import object
 
 
-__version__ = '0.8.10' #TODO: This is duplicated in the build.  Need to figure how to set this once 
+__version__ = '0.8.11' #TODO: This is duplicated in the build.  Need to figure how to set this once
 
 import sys as _sys
 import json as _json
@@ -28,9 +28,11 @@ except:
 from ._decorators import raw_response_retry
 
 _API = None
+_V1_API = None
 _TOKEN_OVERRIDE = None
 _ACCOUNT = None
 _DEFAULT_BASE_URL = "https://console.springserve.com/api/v0"
+_DEFAULT_V1_BASE_URL = "https://console.springserve.com/api/v1"
 _CONFIG_OVERRIDE = None
 
 def setup_config():
@@ -55,6 +57,15 @@ def setup_config():
     current_config['springserve'] = {
         '__default__': {
             'base_url': _DEFAULT_BASE_URL,
+            'user': user,
+            'password': password,
+            'wrapper': "SpringServeAPI"
+        }
+    }
+
+    current_config['springserve_v1'] = {
+        '__default__': {
+            'base_url': _DEFAULT_V1_BASE_URL,
             'user': user,
             'password': password,
             'wrapper': "SpringServeAPI"
@@ -110,7 +121,7 @@ def API(reauth=False):
                 try:
                     _API = _lnk("springserve.{}".format("__default__"))
                 except:
-                    # this is to keep backwards compatiblity
+                    # this is to keep backwards compatibility
                     _API = _lnk.springserve
             _API.headers.update({'springserve-sdk': __version__})
         except Exception as e:
@@ -120,21 +131,55 @@ def API(reauth=False):
     return _API
 
 
+def V1API(reauth=False):
+    """
+    Get the raw API object.  This is rarely used directly by a client of this
+    library, but it used as an internal function
+    """
+    global _V1_API, _ACCOUNT, _CONFIG_OVERRIDE, _TOKEN_OVERRIDE
+
+    if _V1_API is None or reauth:
+        _msg.debug("authenticating to springserve")
+        try:
+            if _ACCOUNT:
+                _V1_API = _lnk("springserve_v1.{}".format(_ACCOUNT))
+            elif _CONFIG_OVERRIDE:
+                _V1_API = SpringServeAPI(**_CONFIG_OVERRIDE)
+
+            elif _TOKEN_OVERRIDE:
+                _V1_API = SpringServeAPITokenOverride(**_TOKEN_OVERRIDE)
+            else:
+                try:
+                    _V1_API = _lnk("springserve_v1.{}".format("__default__"))
+                except:
+                    # this is to keep backwards compatibility
+                    _V1_API = _lnk.springserve
+            _V1_API.headers.update({'springserve-sdk': __version__})
+        except Exception as e:
+            raise Exception("""Error authenticating: check your link.config to
+                            make sure your username, password and url are
+                            correct: {}""".format(e))
+    return _V1_API
+
+
 def switch_account(account_name="__default__"):
     global _ACCOUNT
     _ACCOUNT = account_name
+    V1API(True)
     API(True)
 
-def set_credentials(user, password, base_url='https://console.springserve.com/api/v0'):
+def set_credentials(user, password, base_url=_DEFAULT_BASE_URL):
     global _CONFIG_OVERRIDE
 
     _CONFIG_OVERRIDE = {'user': user, 'password': password, 'base_url': base_url} 
+    V1API(True)
     API(True)
 
-def set_token(token, base_url='https://console.springserve.com/api/v0'):
+def set_token(token, base_url=_DEFAULT_BASE_URL):
     global _TOKEN_OVERRIDE
 
     _TOKEN_OVERRIDE = {'token': token, 'base_url': base_url}
+    V1API(True)
     API(True)
 
 
@@ -399,6 +444,7 @@ class VDAuthError(Exception):
 
 class _VDAPIService(object):
 
+    __API_FACTORY__ = staticmethod(API)
     __API__ = None
     __RESPONSE_OBJECT__ = _VDAPISingleResponse
     __RESPONSES_OBJECT__ = _VDAPIMultiResponse
@@ -431,7 +477,7 @@ class _VDAPIService(object):
             try: 
                 resp_json = api_response.json
             except:
-                resp_json = {"error": "error parsing json response"} 
+                resp_json = {"error": "error parsing json response"}
 
         if isinstance(resp_json, list):
             # wrap it in a multi container
@@ -450,7 +496,7 @@ class _VDAPIService(object):
         client unless they want to inspect the raw http fields
         """
         params = _format_params(query_params)
-        return API(reauth=reauth).get(_format_url(self.endpoint, path_param),
+        return self.__API_FACTORY__(reauth=reauth).get(_format_url(self.endpoint, path_param),
                                       params=params)
 
     def get(self, path_param=None, reauth=False, **query_params):
@@ -477,7 +523,6 @@ class _VDAPIService(object):
             users = springserve.users.get(account_contact=True)
 
         """
-        global API
         try:
             return self.build_response(
                 self.get_raw(path_param, reauth=reauth, **query_params),
@@ -494,15 +539,13 @@ class _VDAPIService(object):
     @raw_response_retry
     def _put_raw(self, path_param, data, reauth=False, **query_params):
         params = _format_params(query_params)
-        return API(reauth=reauth).put(
+        return self.__API_FACTORY__(reauth=reauth).put(
                     _format_url(self.endpoint, path_param),
                     params=params,
                     data=_json.dumps(data)
                     )
 
     def put(self, path_param, data, reauth=False, **query_params):
-        global API
-
         try:
             return self.build_response(
                     self._put_raw(path_param, data, reauth=reauth, **query_params),
@@ -522,7 +565,7 @@ class _VDAPIService(object):
         params = _format_params(query_params)
 
         if not files:
-            return API(reauth=reauth).post(
+            return self.__API_FACTORY__(reauth=reauth).post(
                     _format_url(self.endpoint, path_param),
                     params=params,
                     data=_json.dumps(data)
@@ -531,7 +574,7 @@ class _VDAPIService(object):
         m = MultipartEncoder(
             fields=files
         )
-        return API(reauth=reauth).post(
+        return self.__API_FACTORY__(reauth=reauth).post(
                 _format_url(self.endpoint, path_param),
                 headers={'Content-Type': m.content_type},
                 params=params,
@@ -539,7 +582,6 @@ class _VDAPIService(object):
                 )
 
     def post(self, data, path_param="", files=None, reauth=False, **query_params):
-        global API
         try:
             return self.build_response(
                 self._post_raw(data, path_param, reauth=reauth, files=files, **query_params),
@@ -556,11 +598,10 @@ class _VDAPIService(object):
             raise e
 
     def delete(self, path_param="", reauth=False, **query_params):
-        global API
         try:
             params = _format_params(query_params)
             return self.build_response(
-                    API(reauth=reauth).delete(
+                    self.__API_FACTORY__(reauth=reauth).delete(
                         _format_url(self.endpoint, path_param),
                         params=params,
                         ),
@@ -579,7 +620,7 @@ class _VDAPIService(object):
         params = _format_params(query_params)
         
         if not files:
-            return API(reauth=reauth).delete(
+            return self.__API_FACTORY__(reauth=reauth).delete(
                 _format_url(self.endpoint, path_param),
                 params=params,
                 data=_json.dumps(data)
@@ -589,7 +630,7 @@ class _VDAPIService(object):
             fields=files
         )
 
-        return API(reauth=reauth).delete(
+        return self.__API_FACTORY__(reauth=reauth).delete(
             _format_url(self.endpoint, path_param),
             params=params,
             headers={'Content-Type': m.content_type},
@@ -600,7 +641,6 @@ class _VDAPIService(object):
         """
         Delete an object.
         """
-        global API
         try:
             return self.build_response(
                 self._raw_bulk_delete(data, path_param=path_param,
@@ -639,6 +679,7 @@ from ._reporting import _ReportingAPI, _TrafficQualityReport
 from ._account import _AccountAPI, _UserAPI
 from ._direct_connect import _DirectConnectionAPI
 from ._object_change_messages import _ObjectChangeMessagesAPI
+from ._deal import _ClearLineDealAPI
 
 accounts = _AccountAPI()
 app_bundles = _AppBundleListAPI()
@@ -653,7 +694,8 @@ connected_demand = _ConnectedDemandAPI()
 connected_supply = _ConnectedSupplyAPI()
 channel_id_lists = _ChannelIdListAPI() 
 
-deal_id_lists = _DealIdListAPI() 
+deal_id_lists = _DealIdListAPI()
+clearline_deals = _ClearLineDealAPI()
 demand_labels = _DemandLabelAPI()
 demand_tags = _DemandTagAPI()
 programmatic_guaranteed = _ProgrammaticGuaranteedAPI()
