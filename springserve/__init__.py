@@ -24,6 +24,11 @@ try:
     _msg = _lnk.msg
 except:
     print("problem loading link, this is ok on the install")
+    class _MockMsg:
+        def __init__(self):
+            self.info = print
+            self.debug = print
+    _msg = _MockMsg()
 
 from ._decorators import raw_response_retry
 
