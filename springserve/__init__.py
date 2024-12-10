@@ -138,6 +138,16 @@ def V1API(reauth=False):
     """
     global _V1_API, _ACCOUNT, _CONFIG_OVERRIDE, _TOKEN_OVERRIDE
 
+    #  because the API version is hardcoded in existing config files we need
+    #  to instantiate a separate link config for springserve's v1 API endpoints
+
+    # if the config for the v1 API is missing skip initialization so we don't
+    # break existing usage of this library
+    current_config = _lnk.config()
+    if "springserve_v1" not in current_config:
+        _msg.debug("configuration for v1 springserve api was not found")
+        return None
+
     if _V1_API is None or reauth:
         _msg.debug("authenticating to springserve")
         try:
@@ -172,15 +182,15 @@ def set_credentials(user, password, base_url=_DEFAULT_BASE_URL):
     global _CONFIG_OVERRIDE
 
     _CONFIG_OVERRIDE = {'user': user, 'password': password, 'base_url': base_url} 
-    V1API(True)
     API(True)
+    V1API(True)
 
 def set_token(token, base_url=_DEFAULT_BASE_URL):
     global _TOKEN_OVERRIDE
 
     _TOKEN_OVERRIDE = {'token': token, 'base_url': base_url}
-    V1API(True)
     API(True)
+    V1API(True)
 
 
 class _TabComplete(object):
