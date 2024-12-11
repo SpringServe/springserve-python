@@ -30,10 +30,12 @@ from ._decorators import raw_response_retry
 _API = None
 _V1_API = None
 _TOKEN_OVERRIDE = None
+_V1_TOKEN_OVERRIDE = None
 _ACCOUNT = None
 _DEFAULT_BASE_URL = "https://console.springserve.com/api/v0"
 _DEFAULT_V1_BASE_URL = "https://console.springserve.com/api/v1"
 _CONFIG_OVERRIDE = None
+_V1_CONFIG_OVERRIDE = None
 
 def setup_config():
     """
@@ -136,7 +138,7 @@ def V1API(reauth=False):
     Get the raw API object.  This is rarely used directly by a client of this
     library, but it used as an internal function
     """
-    global _V1_API, _ACCOUNT, _CONFIG_OVERRIDE, _TOKEN_OVERRIDE
+    global _V1_API, _ACCOUNT, _V1_CONFIG_OVERRIDE, _V1_TOKEN_OVERRIDE
 
     #  because the API version is hardcoded in existing config files we need
     #  to instantiate a separate link config for springserve's v1 API endpoints
@@ -153,11 +155,11 @@ def V1API(reauth=False):
         try:
             if _ACCOUNT:
                 _V1_API = _lnk("springserve_v1.{}".format(_ACCOUNT))
-            elif _CONFIG_OVERRIDE:
-                _V1_API = SpringServeAPI(**_CONFIG_OVERRIDE)
+            elif _V1_CONFIG_OVERRIDE:
+                _V1_API = SpringServeAPI(**_V1_CONFIG_OVERRIDE)
 
-            elif _TOKEN_OVERRIDE:
-                _V1_API = SpringServeAPITokenOverride(**_TOKEN_OVERRIDE)
+            elif _V1_TOKEN_OVERRIDE:
+                _V1_API = SpringServeAPITokenOverride(**_V1_TOKEN_OVERRIDE)
             else:
                 try:
                     _V1_API = _lnk("springserve_v1.{}".format("__default__"))
@@ -175,14 +177,19 @@ def V1API(reauth=False):
 def switch_account(account_name="__default__"):
     global _ACCOUNT
     _ACCOUNT = account_name
-    V1API(True)
     API(True)
+    V1API(True)
 
 def set_credentials(user, password, base_url=_DEFAULT_BASE_URL):
     global _CONFIG_OVERRIDE
 
-    _CONFIG_OVERRIDE = {'user': user, 'password': password, 'base_url': base_url} 
+    _CONFIG_OVERRIDE = {'user': user, 'password': password, 'base_url': base_url}
     API(True)
+
+def set_v1_credentials(user, password, base_url=_DEFAULT_V1_BASE_URL,):
+    global _V1_CONFIG_OVERRIDE
+
+    _V1_CONFIG_OVERRIDE = {'user': user, 'password': password, 'base_url': base_url}
     V1API(True)
 
 def set_token(token, base_url=_DEFAULT_BASE_URL):
@@ -190,6 +197,11 @@ def set_token(token, base_url=_DEFAULT_BASE_URL):
 
     _TOKEN_OVERRIDE = {'token': token, 'base_url': base_url}
     API(True)
+
+def set_v1_token(token, base_url=_DEFAULT_V1_BASE_URL):
+    global _V1_TOKEN_OVERRIDE
+
+    _V1_TOKEN_OVERRIDE = {'token': token, 'base_url': base_url}
     V1API(True)
 
 
