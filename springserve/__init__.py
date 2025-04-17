@@ -701,7 +701,7 @@ from ._reporting import _ReportingAPI, _TrafficQualityReport
 from ._account import _AccountAPI, _UserAPI
 from ._direct_connect import _DirectConnectionAPI
 from ._object_change_messages import _ObjectChangeMessagesAPI
-from ._deal import _ClearLineDealAPI
+from ._deal import _ClearLineDealAPI, _DealListAPI
 
 accounts = _AccountAPI()
 app_bundles = _AppBundleListAPI()
@@ -716,6 +716,7 @@ connected_demand = _ConnectedDemandAPI()
 connected_supply = _ConnectedSupplyAPI()
 channel_id_lists = _ChannelIdListAPI() 
 
+deal_lists = _DealListAPI()
 deal_id_lists = _DealIdListAPI()
 clearline_deals = _ClearLineDealAPI()
 demand_labels = _DemandLabelAPI()
