@@ -147,6 +147,13 @@ def V1API(reauth=False):
     # break existing usage of this library
     current_config = _lnk.config()
     if "springserve_v1" not in current_config:
+        print("""
+              Configuration for v1 springserve api was not found. 
+              This can be resolved by running `springserve.setup_config()` again or by adding a `springserve_v1` section to your link.config file. 
+              
+              This will likely use all of the same info from the `springserve` section,
+              with the exception of the base_url which should end with `v1` rather than `v0`.""")
+        
         _msg.debug("configuration for v1 springserve api was not found")
         return None
 
