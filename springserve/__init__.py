@@ -147,6 +147,15 @@ def V1API(reauth=False):
     # break existing usage of this library
     current_config = _lnk.config()
     if "springserve_v1" not in current_config:
+        print(
+            """
+              Configuration for v1 springserve api was not found. 
+              This can be resolved by running `springserve.setup_config()` again or by adding a `springserve_v1` section to your link.config file. 
+              
+              This will likely use all of the same info from the `springserve` section,
+              with the exception of the base_url which should end with `v1` rather than `v0`.
+              """)
+        
         _msg.debug("configuration for v1 springserve api was not found")
         return None
 
@@ -465,7 +474,21 @@ class VDAuthError(Exception):
 
 
 class _VDAPIService(object):
+    """
+    Base class for all API services.
 
+    For any API service, __API_FACTORY__ can be overriden as a class variable to use the V1 API.
+
+    For example::
+
+        class _SupplyTagAPI(_VDAPIService):
+            __API_FACTORY__ = staticmethod(V1API)
+            ... other code...
+
+            will now use the V1 API for this service.
+    
+    NOTE: `springserve_v1` must be set in your link.config file for this to work.
+    """
     __API_FACTORY__ = staticmethod(API)
     __API__ = None
     __RESPONSE_OBJECT__ = _VDAPISingleResponse
@@ -701,7 +724,7 @@ from ._reporting import _ReportingAPI, _TrafficQualityReport
 from ._account import _AccountAPI, _UserAPI
 from ._direct_connect import _DirectConnectionAPI
 from ._object_change_messages import _ObjectChangeMessagesAPI
-from ._deal import _ClearLineDealAPI
+from ._deal import _ClearLineDealAPI, _DealListAPI
 
 accounts = _AccountAPI()
 app_bundles = _AppBundleListAPI()
@@ -716,6 +739,7 @@ connected_demand = _ConnectedDemandAPI()
 connected_supply = _ConnectedSupplyAPI()
 channel_id_lists = _ChannelIdListAPI() 
 
+deal_lists = _DealListAPI()
 deal_id_lists = _DealIdListAPI()
 clearline_deals = _ClearLineDealAPI()
 demand_labels = _DemandLabelAPI()
