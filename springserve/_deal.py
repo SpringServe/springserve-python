@@ -7,7 +7,6 @@ class _ClearLineDealAPI(_VDAPIService):
     __API__ = 'clearline_deals'
 
 class _DealListAPI(_VDAPIService):
-    __API_FACTORY__ = staticmethod(V1API)
     __RESPONSE_OBJECT__ = _VDDuplicateableResponse
     __API__ = 'deal_lists'
 
