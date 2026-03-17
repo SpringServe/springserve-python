@@ -33,6 +33,10 @@ class _ReportingResponse(_VDAPIMultiResponse):
         return self._all_pages_gotten
 
     def get_next_page(self, clear_previous=True):
+        # Load the initial page into self.dataframe 
+        # BEFORE self._raw_response is overwritten
+        if self.dataframe is None:
+            self.to_dataframe()
 
         if self._all_pages_gotten:
             return False
@@ -41,7 +45,7 @@ class _ReportingResponse(_VDAPIMultiResponse):
         if self._payload:
             resp = self._service.post(data=self._payload)
         else:
-            raise('Original report paramaters are missing')
+            raise ('Original report parameters are missing')
 
         if self._is_last_page(resp):
             self._all_pages_gotten = True
@@ -53,9 +57,9 @@ class _ReportingResponse(_VDAPIMultiResponse):
         if clear_previous:
             self.dataframe = new_data
         else:
-            #call to dataframe to make sure self.dataframe is set
-            self.to_dataframe()
-            self.dataframe = self.dataframe.append(new_data)
+            self.dataframe = pandas.concat(
+                [self.dataframe, new_data], axis=0, ignore_index=True
+            )
         self._current_page += 1
         return True
 
